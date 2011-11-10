@@ -1,11 +1,40 @@
 var urlbucket  = {},
     links = [],
-    indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+    indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB,
+    open_bucket_style = {
+	    'backgroundColor' : '#ABCABC',
+	    'overflow' : 'auto',
+	    'position' : 'fixed',
+	    'left' : '40%',
+	    'top' : '40%',
+	    'mozBorderRadius' : '20px',
+	    'webkitBorderRadius' : '20px'
+    },
+    closed_bucket_style = {
+	    "position" : "fixed",
+	    "right" : "0px",
+	    "bottom" : "0px",
+	    "padding" : "2px",
+	    "height" : "100px",
+	    "width" : "100px",
+	    "backgroundColor" : "#aaa",
+	    "zIndex" : "1000",
+	    "webkitBorderRadius" : "10px",
+	    "mozBorderRadius" : "10px"
+    };
 
 if ('webkitIndexedDB' in window) {
 	window.IDBTransaction = window.webkitIDBTransaction;
 	window.IDBKeyRange = window.webkitIDBKeyRange;
 }
+
+urlbucket.applyStyle = function (element, style) {
+	var a_style;
+	for (a_style in style) {
+		element.style[a_style] = style[a_style];
+	}
+	return element;
+};
 urlbucket.indexedDB = {};
 urlbucket.indexedDB.db = null;
 urlbucket.indexedDB.getAllUrls = function () {
@@ -57,6 +86,9 @@ urlbucket.indexedDB.showBucketContents = function () {
 		result.continue();
 	};
 	bucket.appendChild(link_list);
+	bucket.id = 'open_bucket';
+	bucket = urlbucket.applyStyle(bucket, open_bucket_style);
+	console.log(bucket);
 	document.body.appendChild(bucket);
 };
 
@@ -124,6 +156,9 @@ function handleDrop(e) {
 	if (e.stopPropagation) {
 		e.stopPropagation();
 	}
+	if (e.preventDefault) {
+		e.preventDefault();
+	}
 	links.push(droppedData);
 	urlbucket.indexedDB.addUrl(droppedData);
 	this.innerHTML = links.length + ' urls in bucket';
@@ -140,8 +175,8 @@ function addEventListeners() {
 	var links = document.getElementsByTagName('a'),
 	    bucket = document.getElementById('url_bucket');
 	[].forEach.call(links, function (link) {
-		link.addEventListener('dragstart', handleDragStart, false);
-	});
+			link.addEventListener('dragstart', handleDragStart, false);
+			});
 	bucket.addEventListener('dragenter', handleDragEnter, false);
 	bucket.addEventListener('dragleave', handleDragLeave, false);
 	bucket.addEventListener('dragover', handleDragover, false);
@@ -152,32 +187,11 @@ function addEventListeners() {
 function createBucket() {
 	var div = document.createElement('div');
 
-	//element styles
-	div.style.position = "fixed";
-	div.style.right = "0px";
-	div.style.bottom = "0px";
-	div.style.padding = "2px";
-	div.style.height = "100px";
-	div.style.width = "100px";
-	div.style.backgroundColor = "#aaa";
-	div.style.zIndex = "1000";
-	div.style.webkitBorderRadius = "10px";
-
-	//element classname 
+	//element id 
 	div.id = 'url_bucket';
+	div = urlbucket.applyStyle(div, closed_bucket_style);
 
 	document.body.appendChild(div);
-}
-
-function showBucketContent() {
-	var openBucket = document.createElement('div'),
-	    bucketContent = '';
-
-	links.forEach(function (link) {
-		bucketContent += link + '<br>';
-	});
-	openBucket.innerHTML = bucketContent;
-	document.body.appendChild(openBucket);
 }
 
 function init() {
